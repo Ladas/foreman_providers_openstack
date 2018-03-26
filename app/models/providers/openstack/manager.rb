@@ -1,6 +1,9 @@
 module Providers
   class Openstack::Manager < ExtManagementSystem
-    include Cloud::Associations
+    include ForemanProviders::Logging
 
+    include Cloud::Associations
+    include ManagerMixin
+    alias_attribute :address, :hostname
   end
 end

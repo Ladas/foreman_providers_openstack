@@ -4,6 +4,11 @@ module Providers
 
     include Cloud::Associations
     include ManagerMixin
+
+    def disconnects
+      instances
+    end
+
     alias_attribute :address, :hostname
   end
 end

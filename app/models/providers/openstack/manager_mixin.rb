@@ -14,6 +14,7 @@ module Providers::Openstack::ManagerMixin
   # OpenStack interactions
   #
   module ClassMethods
+    extend ForemanProviders::Logging
     def raw_connect(password, params, service = "Compute")
       ems = new
       ems.name                   = params[:name].strip
@@ -39,16 +40,6 @@ module Providers::Openstack::ManagerMixin
         raise miq_exception
       end
     end
-
-    #
-    # class MiqException::InvalidCredentialsError < Error; end
-    # class MiqException::UnreachableError < Error; end
-    # class MiqException::HostError < Error; end
-    # class MiqException::InvalidCredentialsError < Error; end
-    # class MiqException::HostError < Error; end
-    # class MiqException::InvalidCredentialsError < Error; end
-    # class MiqException::EVMLoginError < Error; end
-
 
     def translate_exception(err)
       require 'excon'
@@ -94,7 +85,8 @@ module Providers::Openstack::ManagerMixin
       extra_options[:read_timeout]      = 60 # ::Settings.ems.ems_openstack.excon.read_timeout
 
       osh = OpenstackHandle::Handle.new(username, password, address, port, api_version, security_protocol, extra_options)
-      # osh.connection_options = {:instrumentor => $fog_log}
+
+      # osh.connection_options = {:instrumentor => _log}
       osh
     end
   end

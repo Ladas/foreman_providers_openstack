@@ -1,10 +1,8 @@
-# TODO: Separate collection from parsing (perhaps collecting in parallel a la RHEVM)
+class Providers::Openstack::Parser < Providers::Cloud::Parser
 
-class Providers::Openstack::Parser
-
-  extend ForemanProviders::Logging
-
-  include Providers::Openstack::Parser::HelperMethods
+  include ForemanProviders::Logging
+  include Flavors
+  include HelperMethods
 
   def self.ems_inv_to_hashes(ems, options = nil)
     new(ems, options).ems_inv_to_hashes
@@ -56,13 +54,13 @@ class Providers::Openstack::Parser
     get_flavors
     get_availability_zones
     get_host_aggregates
-    get_quotas
-    get_key_pairs
-    load_orchestration_stacks
-    get_vnfs
-    get_vnfds
+    # get_quotas
+    # get_key_pairs
+    # load_orchestration_stacks
+    # get_vnfs
+    # get_vnfds
     # get_hosts
-    get_images
+    # get_images
     get_servers
     get_cloud_services
 
@@ -139,8 +137,8 @@ class Providers::Openstack::Parser
   end
 
   def get_servers
-    openstack_infra_hosts = @ems.provider.try(:infra_ems).try(:hosts)
-    process_collection(servers, :vms) { |server| parse_server(server, openstack_infra_hosts) }
+    openstack_infra_hosts = nil # @ems.provider.try(:infra_ems).try(:hosts)
+    process_collection(servers, :instances) { |server| parse_server(server, openstack_infra_hosts) }
   end
 
   def get_vnfds
@@ -158,9 +156,9 @@ class Providers::Openstack::Parser
   end
 
   def link_vm_genealogy
-    @data[:vms].each do |vm|
+    @data[:instances].each do |vm|
       parent_vm_uid = vm.delete(:parent_vm_uid)
-      parent_vm = @data_index.fetch_path(:vms, parent_vm_uid)
+      parent_vm = @data_index.fetch_path(:instances, parent_vm_uid)
       vm[:parent_vm] = parent_vm unless parent_vm.nil?
     end
   end
@@ -181,13 +179,13 @@ class Providers::Openstack::Parser
     if az.nil?
       uid        = "null_az"
       new_result = {
-        :type    => "ManageIQ::Providers::Openstack::CloudManager::AvailabilityZoneNull",
+        :type    => "Providers::Openstack::AvailabilityZoneNull",
         :ems_ref => uid
       }
     else
       name = uid = az.zoneName
       new_result = {
-        :type    => "ManageIQ::Providers::Openstack::CloudManager::AvailabilityZone",
+        :type    => "Providers::Openstack::AvailabilityZone",
         :ems_ref => uid,
         :name    => name
       }
@@ -204,7 +202,7 @@ class Providers::Openstack::Parser
     end
 
     new_result = {
-      :type     => "ManageIQ::Providers::Openstack::CloudManager::HostAggregate",
+      :type     => "Providers::Openstack::HostAggregate",
       :ems_ref  => uid.to_s,
       :name     => ha.name,
       :metadata => ha.metadata,
@@ -218,7 +216,7 @@ class Providers::Openstack::Parser
     uid = tenant.id
 
     new_result = {
-      :type        => "ManageIQ::Providers::Openstack::CloudManager::CloudTenant",
+      :type        => "Providers::Openstack::CloudTenant",
       :name        => tenant.name,
       :description => tenant.description,
       :enabled     => tenant.enabled,
@@ -261,7 +259,7 @@ class Providers::Openstack::Parser
         :ems_ref      => quota["id"],
         :name         => key,
         :value        => value,
-        :type         => "ManageIQ::Providers::Openstack::CloudManager::CloudResourceQuota",
+        :type         => "Providers::Openstack::CloudResourceQuota",
       }
     end
   end
@@ -272,11 +270,11 @@ class Providers::Openstack::Parser
   end
 
   def self.key_pair_type
-    'ManageIQ::Providers::Openstack::CloudManager::AuthKeyPair'
+    'Providers::Openstack::AuthKeyPair'
   end
 
   def self.miq_template_type
-    "ManageIQ::Providers::Openstack::CloudManager::Template"
+    "Providers::Openstack::Template"
   end
 
   def parse_server(server, parent_hosts = nil)
@@ -309,10 +307,10 @@ class Providers::Openstack::Parser
     end
 
     parent_image_uid = server.image["id"]
-    parent_image = @data_index.fetch_path(:vms, parent_image_uid)
+    parent_image = @data_index.fetch_path(:instances, parent_image_uid)
 
     new_result = {
-      :type                => "ManageIQ::Providers::Openstack::CloudManager::Vm",
+      :type                => "Providers::Openstack::Instance",
       :uid_ems             => uid,
       :ems_ref             => uid,
       :name                => server.name,
@@ -390,7 +388,7 @@ class Providers::Openstack::Parser
     ]
 
     new_result = {
-      :type           => "ManageIQ::Providers::Openstack::CloudManager::Vnf",
+      :type           => "Providers::Openstack::Vnf",
       :ems_ref        => uid,
       :name           => vnf.name,
       :description    => vnf.description,
@@ -406,7 +404,7 @@ class Providers::Openstack::Parser
     uid = vnfd.id
 
     new_result = {
-      :type        => "ManageIQ::Providers::Openstack::CloudManager::VnfdTemplate",
+      :type        => "Providers::Openstack::VnfdTemplate",
       :ems_ref     => uid,
       :name        => vnfd.name.blank? ? uid : vnfd.name,
       :description => vnfd.description,
@@ -437,7 +435,8 @@ class Providers::Openstack::Parser
   def parse_cloud_service(service, source)
     uid = service.id
 
-    infra_ems = @ems.provider && @ems.provider.try(:infra_ems)
+
+    infra_ems = nil # @ems.provider && @ems.provider.try(:infra_ems)
     hosts = infra_ems.try(:hosts)
 
     host = hosts.try(:find) { |h| h.hypervisor_hostname == service.host.split('.').first }

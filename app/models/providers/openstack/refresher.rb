@@ -1,29 +1,24 @@
 module Providers
-  class Openstack::Refresher < Providers::BaseManager::ManagerRefresher
-
+  class Openstack::Refresher < Cloud::Refresher
     def collect_inventory_for_targets(ems, targets)
-      # override this method and return an array of:
-      #   [[target1, inventory_for_target1], [target2, inventory_for_target2]]
+      targets_with_data = targets.collect do |target|
+        target_name = target.try(:name) || target.try(:event_type)
 
-      [[ems, nil]]
+        _log.info("Filtering inventory for #{target.class} [#{target_name}] id: [#{target.id}]...")
+        [target, nil]
+      end
+
+      targets_with_data
     end
-
 
     def parse_targeted_inventory(ems, _target, inventory)
       log_header = format_ems_for_logging(ems)
       _log.debug "#{log_header} Parsing inventory..."
-      hashes = Providers::Openstack::Parser.ems_inv_to_hashes(inventory)
-      hashes = hashes.slice(:vms, :availability_zones) # POC only
+      hashes = Providers::Openstack::Parser.ems_inv_to_hashes(ems)
+      hashes = hashes.slice(:instances, :availability_zones) # POC only
       _log.debug "#{log_header} Parsing inventory...Complete"
 
       hashes
-    end
-
-    def save_inventory(ems, target, inventory_collections)
-      super
-      EmsRefresh.queue_refresh(ems.network_manager) if target.kind_of?(ManageIQ::Providers::BaseManager)
-      EmsRefresh.queue_refresh(ems.cinder_manager) if target.kind_of?(ManageIQ::Providers::BaseManager)
-      EmsRefresh.queue_refresh(ems.swift_manager) if target.kind_of?(ManageIQ::Providers::BaseManager)
     end
 
     def preprocess_targets
@@ -34,7 +29,7 @@ module Providers
       # hash in the order we want them to appear.
       sorted_ems_targets = {}
       # pull out the IDs of cloud managers and reinsert them in a new hash first, to take advantage of preserved insertion order
-      cloud_manager_ids = @targets_by_ems_id.keys.select { |key| @ems_by_ems_id[key].kind_of? ManageIQ::Providers::Openstack::CloudManager }
+      cloud_manager_ids = @targets_by_ems_id.keys.select { |key| @ems_by_ems_id[key].kind_of? Providers::Openstack::Manager }
       cloud_manager_ids.each { |ems_id| sorted_ems_targets[ems_id] = @targets_by_ems_id.delete(ems_id) }
       # now that the cloud managers have been removed from @targets_by_ems_id, move the rest of the values
       # over to the new hash and then replace @targets_by_ems_id.
@@ -43,7 +38,7 @@ module Providers
     end
 
     def post_process_refresh_classes
-      [::Vm, CloudTenant]
+      [] #[::Vm, CloudTenant]
     end
   end
 end

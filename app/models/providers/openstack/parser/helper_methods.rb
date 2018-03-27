@@ -1,6 +1,6 @@
 module Providers
   module Openstack
-    module Parser
+    class Parser
       module HelperMethods
         def uniques(collection)
           unique_objs = []
@@ -15,7 +15,7 @@ module Providers
         end
 
         def openstack_admin?
-          ::Settings.ems_refresh.openstack.try(:is_admin)
+          true # ::Settings.ems_refresh.openstack.try(:is_admin)
         end
 
         def cinder_admin?

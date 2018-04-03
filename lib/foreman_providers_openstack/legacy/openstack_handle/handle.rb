@@ -1,5 +1,5 @@
 require 'active_support/inflector'
-require 'util/miq-exception'
+require 'foreman_providers_openstack/util/miq-exception'
 
 module OpenstackHandle
   class Handle

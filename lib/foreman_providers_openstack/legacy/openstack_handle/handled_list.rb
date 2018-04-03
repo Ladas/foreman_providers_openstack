@@ -1,9 +1,9 @@
-require 'providers/openstack/legacy/openstack_handle/pagination/marker'
-require 'providers/openstack/legacy/openstack_handle/pagination/none'
-require 'providers/openstack/legacy/openstack_handle/pagination/page_number'
+require 'foreman_providers_openstack/legacy/openstack_handle/pagination/marker'
+require 'foreman_providers_openstack/legacy/openstack_handle/pagination/none'
+require 'foreman_providers_openstack/legacy/openstack_handle/pagination/page_number'
 
-require 'providers/openstack/legacy/openstack_handle/multi_tenancy/loop'
-require 'providers/openstack/legacy/openstack_handle/multi_tenancy/option'
+require 'foreman_providers_openstack/legacy/openstack_handle/multi_tenancy/loop'
+require 'foreman_providers_openstack/legacy/openstack_handle/multi_tenancy/option'
 
 module OpenstackHandle
   module HandledList

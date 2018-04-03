@@ -1,4 +1,4 @@
-require 'providers/openstack/legacy/openstack_handle/multi_tenancy/base'
+require 'foreman_providers_openstack/legacy/openstack_handle/multi_tenancy/base'
 
 module OpenstackHandle
   module MultiTenancy

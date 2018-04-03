@@ -1,4 +1,4 @@
-require 'providers/openstack/legacy/openstack_handle/pagination/base'
+require 'foreman_providers_openstack/legacy/openstack_handle/pagination/base'
 
 module OpenstackHandle
   module Pagination

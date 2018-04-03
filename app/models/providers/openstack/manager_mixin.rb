@@ -1,4 +1,3 @@
-require 'util/miq-exception'
 
 module Providers::Openstack::ManagerMixin
   extend ActiveSupport::Concern
@@ -67,7 +66,7 @@ module Providers::Openstack::ManagerMixin
   end
 
   def openstack_handle(options = {})
-    require 'providers/openstack/legacy/openstack_handle'
+    require 'foreman_providers_openstack/legacy/openstack_handle'
     @openstack_handle ||= begin
       raise MiqException::InvalidCredentialsError, "No credentials defined" if self.missing_credentials?(options[:auth_type])
 

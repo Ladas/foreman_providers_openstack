@@ -124,7 +124,7 @@ module OpenstackHandle
       @address           = address
       @port              = port || 5000
       @api_version       = api_version || 'v2'
-      @security_protocol = security_protocol || 'ssl'
+      @security_protocol = security_protocol || 'non-ssl'
       @extra_options     = extra_options
 
       @connection_cache   = {}
